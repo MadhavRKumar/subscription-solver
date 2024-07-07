@@ -1,9 +1,14 @@
 package main
 
 import (
+    "context"
+    "os"
+    "fmt"
     "net/http"
 
     "github.com/gin-gonic/gin"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Subscription struct {
@@ -17,8 +22,19 @@ var subscriptions = []Subscription{
     { ID: 1, Name: "Netflix", ProfileLimit: 1, Cost: 2500 },
 }
 
+var conn *pgxpool.Pool
+
 
 func main() {
+
+    var err error
+    conn, err = pgxpool.New(context.Background(), os.Getenv("POSTGRES_URL"))
+
+    if err != nil {
+        os.Exit(1)
+    }
+    defer conn.Close()
+
     router := gin.Default()
     router.GET("/subscriptions", getSubscriptions)
     router.GET("/subscriptions/:id", getSubscription)
@@ -56,6 +72,13 @@ func postSubscriptions(c *gin.Context) {
 
     if err := c.BindJSON(&newSubscription); err != nil {
         return
+    }
+
+    err := conn.QueryRow(context.Background(), "INSERT into subscriptions ('name', 'profileLimit', 'cost') VALUES ($1, $2, $3)", newSubscription.Name, newSubscription.ProfileLimit, newSubscription.Cost).Scan()
+
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "QueryRow failed: %v\n", err)
+        c.AbortWithError(http.StatusInternalServerError, err)
     }
 
     subscriptions = append(subscriptions, newSubscription)
