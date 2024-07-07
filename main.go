@@ -25,7 +25,7 @@ func main() {
     router.POST("/subscriptions", postSubscriptions)
     router.DELETE("/subscriptions/:id", deleteSubscription)
 
-    router.Run("localhost:8080")
+    router.Run()
 }
 
 func getSubscriptions(c *gin.Context) {
