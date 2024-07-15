@@ -12,3 +12,6 @@ down:
 
 migrate:
 	migrate -database ${POSTGRES_URL} -path db/migrations up
+
+migrate-down:
+	migrate -database ${POSTGRES_URL} -path db/migrations down
