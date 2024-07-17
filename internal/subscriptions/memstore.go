@@ -34,8 +34,26 @@ func (m *memStore) Add(uuid string, subscription Subscription) (Subscription, er
     return subscription, err
 }
 
-func (*memStore) Get(uuid string) (Subscription, error) {
-    return Subscription{}, nil
+func (m *memStore) Get(uuid string) (Subscription, error) {
+    row, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions where uuid=$1", uuid)
+
+    defer row.Close()
+
+    if err != nil {
+        return Subscription{}, err
+    }
+
+
+    var sub Subscription
+    if row.Next() {
+        err := row.Scan(&sub.UUID, &sub.Name, &sub.ProfileLimit, &sub.Cost)
+
+        if err != nil {
+            return Subscription{}, err
+        }
+    }
+
+    return sub, nil
 }
 
 func (m *memStore) List() (map[string]Subscription, error) {

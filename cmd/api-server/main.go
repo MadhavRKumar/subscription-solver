@@ -10,10 +10,6 @@ import (
     "github.com/MadhavRKumar/subscription-solver/internal/subscriptions"
 )
 
-var subscriptions_list = []subscriptions.Subscription{
-    { Name: "Netflix", ProfileLimit: 1, Cost: 2500 },
-}
-
 
 type SubscriptionsHandler struct {
     store subscriptionStore
@@ -64,6 +60,18 @@ func (h *SubscriptionsHandler) ListSubscription(c *gin.Context) {
     c.IndentedJSON(http.StatusOK, subscriptions)
 }
 
+func (h* SubscriptionsHandler) GetSubscription(c *gin.Context) {
+    uuid := c.Param("id")
+
+    sub, err := h.store.Get(uuid)
+
+    if err != nil {
+        c.AbortWithError(http.StatusInternalServerError, err)
+        return
+    }
+
+    c.IndentedJSON(http.StatusOK, sub)
+}
 
 
 func main() {
@@ -73,19 +81,14 @@ func main() {
 
     router := gin.Default()
     router.GET("/subscriptions", handler.ListSubscription)
-    router.GET("/subscriptions/:id", getSubscription)
+    router.GET("/subscriptions/:id", handler.GetSubscription)
     router.POST("/subscriptions", handler.CreateSubscription)
     router.DELETE("/subscriptions/:id", deleteSubscription)
 
     router.Run()
 }
 
-func getSubscriptions(c *gin.Context) {
-    c.IndentedJSON(http.StatusOK, subscriptions_list)
-}
 
-func getSubscription(c *gin.Context) {
-}
 
 
 func deleteSubscription(c *gin.Context) {
