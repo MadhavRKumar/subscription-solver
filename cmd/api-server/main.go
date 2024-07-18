@@ -73,6 +73,19 @@ func (h* SubscriptionsHandler) GetSubscription(c *gin.Context) {
     c.IndentedJSON(http.StatusOK, sub)
 }
 
+func (h* SubscriptionsHandler) DeleteSubscription(c *gin.Context) {
+    uuid := c.Param("id")
+
+    err := h.store.Remove(uuid)
+
+    if err != nil {
+        c.AbortWithError(http.StatusInternalServerError, err)
+        return
+    }
+
+    c.Status(http.StatusNoContent)
+}
+
 
 func main() {
 
@@ -83,7 +96,7 @@ func main() {
     router.GET("/subscriptions", handler.ListSubscription)
     router.GET("/subscriptions/:id", handler.GetSubscription)
     router.POST("/subscriptions", handler.CreateSubscription)
-    router.DELETE("/subscriptions/:id", deleteSubscription)
+    router.DELETE("/subscriptions/:id", handler.DeleteSubscription)
 
     router.Run()
 }

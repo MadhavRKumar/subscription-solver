@@ -83,6 +83,10 @@ func (*memStore) Update(uuid string, subscription Subscription) error {
     return nil
 }
 
-func (*memStore) Remove(uuid string) error {
+func (m *memStore) Remove(uuid string) error {
+    if _, err := m.conn.Exec(context.Background(), "UPDATE subscriptions SET deleted_at=now() WHERE uuid=$1", uuid); err != nil {
+        return err
+    }
+
     return nil
 }
