@@ -63,6 +63,10 @@ func (m *memStore) List() (map[string]Subscription, error) {
 
     rows, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions")
 
+    if err != nil {
+        return subscriptions, err
+    }
+
     defer rows.Close()
 
     for rows.Next() {

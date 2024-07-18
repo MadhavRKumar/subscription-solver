@@ -33,7 +33,10 @@ func (h *SubscriptionsHandler) CreateSubscription(c *gin.Context) {
     var newSubscription subscriptions.Subscription
 
     if err := c.BindJSON(&newSubscription); err != nil {
-        c.AbortWithError(http.StatusInternalServerError, err)
+
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
         return
     }
 
@@ -42,7 +45,10 @@ func (h *SubscriptionsHandler) CreateSubscription(c *gin.Context) {
     sub, err := h.store.Add(uuid, newSubscription)
 
     if err != nil {
-        c.AbortWithError(http.StatusInternalServerError, err)
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
+
         return
     } 
 
@@ -53,7 +59,10 @@ func (h *SubscriptionsHandler) ListSubscription(c *gin.Context) {
     subscriptions, err := h.store.List()
 
     if err != nil {
-        c.AbortWithError(http.StatusInternalServerError, err)
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
+
         return
     }
 
@@ -67,12 +76,14 @@ func (h* SubscriptionsHandler) GetSubscription(c *gin.Context) {
 
     if err != nil {
 
-        if norows, ok := err.(*subscriptions.NotFoundError); ok {
-            c.AbortWithError(http.StatusNotFound, norows)
+        if _, ok := err.(*subscriptions.NotFoundError); ok {
+            c.AbortWithStatus(http.StatusNotFound)
             return
         }
 
-        c.AbortWithError(http.StatusInternalServerError, err)
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
         return
     }
 
@@ -85,7 +96,15 @@ func (h* SubscriptionsHandler) DeleteSubscription(c *gin.Context) {
     err := h.store.Remove(uuid)
 
     if err != nil {
-        c.AbortWithError(http.StatusInternalServerError, err)
+        if _, ok := err.(*subscriptions.NotFoundError); ok {
+            c.AbortWithStatus(http.StatusNotFound)
+            return
+        }
+
+
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
         return
     }
 
@@ -104,11 +123,9 @@ func main() {
     router.POST("/subscriptions", handler.CreateSubscription)
     router.DELETE("/subscriptions/:id", handler.DeleteSubscription)
 
-    router.Run()
+    err := router.Run()
+    if err != nil {
+        panic(err)
+    }
 }
 
-
-
-
-func deleteSubscription(c *gin.Context) {
-}
