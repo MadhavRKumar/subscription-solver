@@ -6,10 +6,19 @@ import (
     "log"
 
     "github.com/jackc/pgx/v5/pgxpool"
+    "github.com/jackc/pgx/v5"
 )
 
 type memStore struct {
     conn *pgxpool.Pool
+}
+
+type NotFoundError struct {
+    message string
+}
+
+func (e *NotFoundError) Error() string {
+    return e.message
 }
 
 func NewMemStore() *memStore {
@@ -35,22 +44,14 @@ func (m *memStore) Add(uuid string, subscription Subscription) (Subscription, er
 }
 
 func (m *memStore) Get(uuid string) (Subscription, error) {
-    row, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions where uuid=$1", uuid)
-
-    defer row.Close()
+    var sub Subscription
+    err := m.conn.QueryRow(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions where uuid=$1 and deleted_at is NULL", uuid).Scan(&sub.UUID, &sub.Name, &sub.ProfileLimit, &sub.Cost)
 
     if err != nil {
-        return Subscription{}, err
-    }
-
-
-    var sub Subscription
-    if row.Next() {
-        err := row.Scan(&sub.UUID, &sub.Name, &sub.ProfileLimit, &sub.Cost)
-
-        if err != nil {
-            return Subscription{}, err
+        if err == pgx.ErrNoRows {
+            return Subscription{}, &NotFoundError{"Subscription not found"}
         }
+        return Subscription{}, err
     }
 
     return sub, nil

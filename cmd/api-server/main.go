@@ -66,6 +66,12 @@ func (h* SubscriptionsHandler) GetSubscription(c *gin.Context) {
     sub, err := h.store.Get(uuid)
 
     if err != nil {
+
+        if norows, ok := err.(*subscriptions.NotFoundError); ok {
+            c.AbortWithError(http.StatusNotFound, norows)
+            return
+        }
+
         c.AbortWithError(http.StatusInternalServerError, err)
         return
     }
