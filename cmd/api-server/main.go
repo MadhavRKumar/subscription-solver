@@ -21,6 +21,21 @@ type subscriptionStore interface {
 	Remove(uuid string) error
 }
 
+func main() {
+	store := subscriptions.NewMemStore()
+	handler := NewSubscriptionsHandler(store)
+	router := gin.Default()
+	router.GET("/subscriptions", handler.ListSubscription)
+	router.GET("/subscriptions/:id", handler.GetSubscription)
+	router.POST("/subscriptions", handler.CreateSubscription)
+	router.DELETE("/subscriptions/:id", handler.DeleteSubscription)
+
+	err := router.Run()
+	if err != nil {
+		panic(err)
+	}
+}
+
 func NewSubscriptionsHandler(s subscriptionStore) *SubscriptionsHandler {
 	return &SubscriptionsHandler{
 		store: s,
@@ -96,30 +111,10 @@ func (h *SubscriptionsHandler) DeleteSubscription(c *gin.Context) {
 		}
 
 		if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
-			return
+			panic(err)
 		}
 		return
 	}
 
-	if err != nil {
-		if _, ok := err.(*subscriptions.NotFoundError); ok {
-			c.AbortWithStatus(http.StatusNotFound)
-			return
-		}
 	c.Status(http.StatusNoContent)
-}
-
-func main() {
-	store := subscriptions.NewMemStore()
-	handler := NewSubscriptionsHandler(store)
-	router := gin.Default()
-	router.GET("/subscriptions", handler.ListSubscription)
-	router.GET("/subscriptions/:id", handler.GetSubscription)
-	router.POST("/subscriptions", handler.CreateSubscription)
-	router.DELETE("/subscriptions/:id", handler.DeleteSubscription)
-
-	err := router.Run()
-	if err != nil {
-		panic(err)
-	}
 }
