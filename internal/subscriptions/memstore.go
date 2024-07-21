@@ -57,7 +57,7 @@ func (m *memStore) Get(uuid string) (Subscription, error) {
 func (m *memStore) List() (map[string]Subscription, error) {
 	subscriptions := make(map[string]Subscription)
 
-	rows, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions")
+	rows, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions WHERE deleted_at is NULL")
 	if err != nil {
 		return subscriptions, err
 	}
