@@ -77,14 +77,24 @@ func (m *memStore) List() (map[string]Subscription, error) {
 	return subscriptions, err
 }
 
-func (*memStore) Update(uuid string, subscription Subscription) error {
-	return nil
+func (m *memStore) Update(uuid string, subscription Subscription) error {
+    _, err := m.conn.Exec(context.Background(), "UPDATE subscriptions SET name=$1, profile_limit=$2, cost=$3 WHERE uuid=$4", subscription.Name, subscription.ProfileLimit, subscription.Cost, uuid)
+
+    if err == pgx.ErrNoRows {
+        return &NotFoundError{"Subscription not found"}
+    }
+
+    return err
 }
 
 func (m *memStore) Remove(uuid string) error {
 	if _, err := m.conn.Exec(context.Background(), "UPDATE subscriptions SET deleted_at=now() WHERE uuid=$1", uuid); err != nil {
+		if err == pgx.ErrNoRows {
+			return &NotFoundError{"Subscription not found"}
+		}
 		return err
 	}
+
 
 	return nil
 }

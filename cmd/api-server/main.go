@@ -29,6 +29,7 @@ func main() {
 	router.GET("/subscriptions/:id", handler.GetSubscription)
 	router.POST("/subscriptions", handler.CreateSubscription)
 	router.DELETE("/subscriptions/:id", handler.DeleteSubscription)
+	router.PATCH("/subscriptions/:id", handler.UpdateSubscription)
 
 	err := router.Run()
 	if err != nil {
@@ -117,4 +118,33 @@ func (h *SubscriptionsHandler) DeleteSubscription(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *SubscriptionsHandler) UpdateSubscription(c *gin.Context) {
+    uuid := c.Param("id")
+
+    var updatedSubscription subscriptions.Subscription
+
+    if err := c.BindJSON(&updatedSubscription); err != nil {
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
+        return
+    }
+
+    err := h.store.Update(uuid, updatedSubscription)
+
+    if err != nil {
+        if _, ok := err.(*subscriptions.NotFoundError); ok {
+            c.AbortWithStatus(http.StatusNotFound)
+            return
+        }
+
+        if err := c.AbortWithError(http.StatusInternalServerError, err); err != nil {
+            return
+        }
+        return
+    }
+
+    c.Status(http.StatusNoContent)
 }
