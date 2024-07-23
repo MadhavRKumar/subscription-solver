@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/MadhavRKumar/subscription-solver/internal/subscriptions"
+    "github.com/MadhavRKumar/subscription-solver/internal/middleware/cors"
 )
 
 type SubscriptionsHandler struct {
@@ -24,7 +25,12 @@ type subscriptionStore interface {
 func main() {
 	store := subscriptions.NewMemStore()
 	handler := NewSubscriptionsHandler(store)
-	router := gin.Default()
+
+	router := gin.New()
+    router.Use(cors.Cors())
+    router.Use(gin.Logger())
+    router.Use(gin.Recovery())
+
 	router.GET("/subscriptions", handler.ListSubscription)
 	router.GET("/subscriptions/:id", handler.GetSubscription)
 	router.POST("/subscriptions", handler.CreateSubscription)
