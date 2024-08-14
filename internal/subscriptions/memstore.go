@@ -54,10 +54,10 @@ func (m *memStore) Get(uuid string) (Subscription, error) {
 	return sub, nil
 }
 
-func (m *memStore) List() (map[string]Subscription, error) {
-	subscriptions := make(map[string]Subscription)
+func (m *memStore) List() ([]Subscription, error) {
+	var subscriptions []Subscription
 
-	rows, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions WHERE deleted_at is NULL")
+	rows, err := m.conn.Query(context.Background(), "SELECT uuid, name, profile_limit, cost FROM subscriptions WHERE deleted_at is NULL ORDER BY created_at DESC")
 	if err != nil {
 		return subscriptions, err
 	}
@@ -71,7 +71,7 @@ func (m *memStore) List() (map[string]Subscription, error) {
 			return subscriptions, err
 		}
 
-		subscriptions[sub.UUID] = sub
+		subscriptions = append(subscriptions, sub)
 	}
 
 	return subscriptions, err

@@ -17,7 +17,7 @@ type SubscriptionsHandler struct {
 type subscriptionStore interface {
 	Add(uuid string, subscription subscriptions.Subscription) (subscriptions.Subscription, error)
 	Get(uuid string) (subscriptions.Subscription, error)
-	List() (map[string]subscriptions.Subscription, error)
+	List() ([]subscriptions.Subscription, error)
 	Update(uuid string, subscription subscriptions.Subscription) error
 	Remove(uuid string) error
 }
