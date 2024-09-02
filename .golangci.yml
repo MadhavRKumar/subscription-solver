@@ -1,0 +1,19 @@
+linters:
+  # Enable specific linter
+  # https://golangci-lint.run/usage/linters/#enabled-by-default
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofumpt
+    - goimports
+
+  # Enable only fast linters from enabled linters set (first run won't be fast)
+  # Default: false
+  fast: true
+
+issues:
+  fix: true

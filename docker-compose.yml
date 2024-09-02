@@ -1,0 +1,48 @@
+name: subscription-solver
+
+services:
+  api-dev:
+    container_name: api-dev
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+    profiles:
+      - dev
+
+  api-prod:
+    container_name: api-prod
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+    profiles:
+      - prod
+
+  db:
+    image: postgres:16.3
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
+
