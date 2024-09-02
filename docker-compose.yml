@@ -1,18 +1,35 @@
 name: subscription-solver
 
 services:
-  web:
-    build: .
+  api-dev:
+    container_name: api-dev
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: dev
     ports:
       - "8080:8080"
     volumes:
       - .:/usr/src/app
-    command: air
     environment:
       - POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
-    networks:
-      - default
-      - subscription-solver-proxy
+    profiles:
+      - dev
+
+  api-prod:
+    container_name: api-prod
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    ports:
+      - "8081:8080"
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - POSTGRES_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+    profiles:
+      - prod
 
   db:
     image: postgres:16.3
@@ -29,7 +46,3 @@ services:
 volumes:
   postgres-db:
 
-networks:
-  subscription-solver-proxy:
-    external: true
-    name: subscription-solver-network

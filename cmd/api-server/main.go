@@ -23,6 +23,8 @@ type subscriptionStore interface {
 }
 
 func main() {
+    gin.SetMode(gin.ReleaseMode)
+
 	store := subscriptions.NewMemStore()
 	handler := NewSubscriptionsHandler(store)
 
